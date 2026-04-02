@@ -112,10 +112,7 @@ pub fn normalize_operation_id(operation_id: &str) -> Vec<String> {
 }
 
 /// Clean operation ID by removing words that appear in the tag
-pub fn clean_operation_id(
-    operation_id_as_vec: &[String],
-    tag_as_vec: &[String],
-) -> Vec<String> {
+pub fn clean_operation_id(operation_id_as_vec: &[String], tag_as_vec: &[String]) -> Vec<String> {
     let mut cleaned_operation_id = Vec::new();
     for word in operation_id_as_vec {
         if !tag_as_vec.contains(word) {
