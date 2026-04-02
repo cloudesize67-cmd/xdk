@@ -17,7 +17,7 @@ pub fn extract_operations_by_tag(
 
     /// Helper function to process an operation and add it to the operations_by_tag map
     fn process_operation(
-        operations_by_tag: &mut HashMap<Vec<String>, Vec<OperationGroup>>,
+        operations_by_tag: &mut HashMap<Vec<String>, Vec<OperationGroup>>, 
         path: &str,
         method: &str,
         operation: &Option<openapi::Operation>,
@@ -43,6 +43,7 @@ pub fn extract_operations_by_tag(
                 responses: op.responses.clone(),
                 is_streaming: op.streaming.unwrap_or(false),
             };
+            let tag_key = normalized_tag.clone();
             let operation_group = OperationGroup {
                 operation: operation_info,
                 metadata: Metadata {
@@ -54,7 +55,7 @@ pub fn extract_operations_by_tag(
                 raw_parameters: op.parameters.clone(),
             };
             operations_by_tag
-                .entry(normalized_tag)
+                .entry(tag_key)
                 .or_default()
                 .push(operation_group);
         }
