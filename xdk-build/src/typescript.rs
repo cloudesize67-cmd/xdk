@@ -46,7 +46,6 @@ pub fn generate(openapi: &OpenApi, output_dir: &Path) -> Result<()> {
 
 fn format_typescript_files(output_dir: &Path) -> Result<()> {
     use std::fs;
-    use std::path::PathBuf;
 
     fn process_directory(dir: &Path) -> Result<()> {
         for entry in fs::read_dir(dir).map_err(BuildError::IoError)? {
