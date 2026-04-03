@@ -1,6 +1,3 @@
-// Allow unused imports for now, as we'll add more commands later
-#![allow(unused_imports)]
-
 // Declare modules
 mod error;
 mod python;
@@ -10,7 +7,7 @@ mod utils;
 use crate::error::{BuildError, Result};
 
 use clap::{Parser, Subcommand};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use xdk_lib::{SdkGeneratorError, log_info};
 use xdk_openapi::{OpenApiContextGuard, parse_json, parse_json_file, parse_yaml_file};
 
