@@ -78,12 +78,12 @@ class {{ class_name }}(BaseModel):
 
 {# Helper macro to generate field type with nested class support #}
 {% macro field_type(prop, parent_class_name, field_name) -%}
-{%- if prop["$ref"] is defined -%}
+{%- if prop.type == 'object' and prop.properties -%}
+Optional["{{ parent_class_name }}{{ field_name | pascal_case }}"]
+{%- elif prop["$ref"] is defined -%}
 {# Handle schema reference - extract type name from $ref path using last_part filter #}
 {%- set ref_name = prop["$ref"] | last_part -%}
 {%- if prop.required %}"{{ ref_name }}"{%- else %}Optional["{{ ref_name }}"]{%- endif -%}
-{%- elif prop.type == 'object' and prop.properties -%}
-Optional["{{ parent_class_name }}{{ field_name | pascal_case }}"]
 {%- elif prop.type -%}
 {%- if prop.required %}{{ prop.type | python_type }}{%- else %}Optional[{{ prop.type | python_type }}]{%- endif -%}
 {%- else -%}
