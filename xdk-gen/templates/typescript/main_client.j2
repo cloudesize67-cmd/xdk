@@ -448,8 +448,51 @@ export class Client {
    * Check if the OAuth2 token is expired
    */
   isTokenExpired(): boolean {
-    // TODO: Implement token expiration check
-    return false;
+    if (!this.accessToken) {
+      return false;
+    }
+
+    try {
+      // JWT tokens have 3 parts separated by dots
+      const parts = this.accessToken.split('.');
+      if (parts.length !== 3) {
+        return false;
+      }
+
+      // Decode the payload (second part)
+      const payloadBase64Url = parts[1];
+
+      // Convert Base64URL to Base64
+      const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+      // Add padding if needed
+      const padding = payloadBase64.length % 4;
+      const paddedBase64 = padding ? payloadBase64 + '='.repeat(4 - padding) : payloadBase64;
+
+      let jsonPayload;
+      if (typeof Buffer !== 'undefined') {
+        // Node.js environment
+        jsonPayload = Buffer.from(paddedBase64, 'base64').toString('utf8');
+      } else {
+        // Browser environment
+        jsonPayload = atob(paddedBase64);
+      }
+
+      const payload = JSON.parse(jsonPayload);
+
+      // Check if exp claim exists
+      if (payload && typeof payload === 'object' && 'exp' in payload) {
+        const expTime = payload.exp * 1000; // Convert to milliseconds
+        const currentTime = Date.now();
+        // Return true if expired or about to expire in the next 5 minutes
+        return currentTime >= (expTime - 5 * 60 * 1000);
+      }
+
+      return false;
+    } catch (error) {
+      // If parsing fails, we assume it's not a JWT or invalid, return false
+      return false;
+    }
   }
 
   /**
