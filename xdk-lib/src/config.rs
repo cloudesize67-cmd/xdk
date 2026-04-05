@@ -18,7 +18,61 @@ pub struct XdkConfig {
 impl XdkConfig {
     /// Load configuration from a file path
     pub fn from_file<P: AsRef<Path>>(path: P) -> crate::Result<Self> {
-        let contents = fs::read_to_string(path.as_ref())?;
+        let path = path.as_ref();
+
+        // Ensure the path exists before canonicalizing
+        if !path.exists() {
+            return Err(crate::SdkGeneratorError::IoError(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                format!("Config file not found: {}", path.display()),
+            )));
+        }
+
+        let canonical_path = fs::canonicalize(path)?;
+
+        // Check if the file is in an allowed location to prevent path traversal.
+        // Allowed locations are the workspace root (where xdk-config.toml is) or the current directory.
+        let current_dir = std::env::current_dir()?;
+        let mut allowed_dirs = Vec::new();
+
+        // 1. Current Directory
+        if let Ok(canon_cwd) = fs::canonicalize(&current_dir) {
+            allowed_dirs.push(canon_cwd);
+        }
+
+        // 2. Workspace root (where xdk-config.toml is located)
+        if let Some(config_path) = Self::find_config_file(&current_dir) {
+            if let Some(root_dir) = config_path.parent() {
+                if let Ok(canon_root) = fs::canonicalize(root_dir) {
+                    allowed_dirs.push(canon_root);
+                }
+            }
+        }
+
+        // 3. CARGO_MANIFEST_DIR if available
+        if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
+            if let Ok(canon_manifest) = fs::canonicalize(manifest_dir) {
+                allowed_dirs.push(canon_manifest);
+            }
+        }
+
+        let is_allowed = allowed_dirs.iter().any(|dir| {
+            // Prevent allowing everything if root directory is somehow in the list
+            if dir == Path::new("/") {
+                false
+            } else {
+                canonical_path.starts_with(dir)
+            }
+        });
+
+        if !is_allowed {
+            return Err(crate::SdkGeneratorError::FrameworkError(format!(
+                "Access to config file denied: {}. Files must be within the workspace or current directory.",
+                path.display()
+            )));
+        }
+
+        let contents = fs::read_to_string(path)?;
         let config: XdkConfig = toml::from_str(&contents).map_err(|e| {
             crate::SdkGeneratorError::FrameworkError(format!("Failed to parse config: {}", e))
         })?;
@@ -137,6 +191,56 @@ typescript = "2.0.0-beta"
     fn test_from_file_missing_file() {
         let result = XdkConfig::from_file("/nonexistent/path/xdk-config.toml");
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_from_file_path_traversal_protection() {
+        // Create a temporary file in a location that is definitely NOT in CWD or workspace root.
+        // We use a temporary directory which is usually in /tmp.
+        let temp_dir = tempfile::tempdir().unwrap();
+        let config_file = temp_dir.path().join("external-config.toml");
+
+        // We only write the file if temp_dir is NOT starting with current_dir
+        let current_dir = std::env::current_dir().unwrap();
+        let canon_cwd = fs::canonicalize(&current_dir).unwrap();
+        let canon_temp = fs::canonicalize(temp_dir.path()).unwrap();
+
+        if !canon_temp.starts_with(&canon_cwd) {
+            let mut file = fs::File::create(&config_file).unwrap();
+            file.write_all(b"[versions]\nrust = \"1.0.0\"").unwrap();
+
+            let result = XdkConfig::from_file(&config_file);
+            assert!(result.is_err());
+            match result {
+                Err(crate::SdkGeneratorError::FrameworkError(msg)) => {
+                    assert!(msg.contains("Access to config file denied"));
+                }
+                _ => panic!(
+                    "Expected FrameworkError due to path traversal protection, got {:?}",
+                    result
+                ),
+            }
+        }
+
+        // To be sure we trigger the protection, we can try to access /etc/passwd if it exists
+        if Path::new("/etc/passwd").exists() {
+            let result = XdkConfig::from_file("/etc/passwd");
+            assert!(result.is_err());
+            match result {
+                Err(crate::SdkGeneratorError::FrameworkError(msg)) => {
+                    assert!(msg.contains("Access to config file denied"));
+                }
+                Err(crate::SdkGeneratorError::IoError(e))
+                    if e.kind() == std::io::ErrorKind::PermissionDenied =>
+                {
+                    // If we can't even canonicalize it due to permissions, that's also fine
+                }
+                _ => panic!(
+                    "Expected FrameworkError or PermissionDenied due to path traversal protection, got {:?}",
+                    result
+                ),
+            }
+        }
     }
 
     #[test]
