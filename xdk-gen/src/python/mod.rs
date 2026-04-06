@@ -28,13 +28,6 @@ mod tests {
             .tempdir()
             .expect("Failed to create temporary directory");
 
-        // make a real dir from tempdir on ./test_output
-        // let output_dir = Path::new("./test_output");
-        // fs::create_dir_all(output_dir).expect("Failed to create test_output directory");
-
-        // // copy the tempdir to the output_dir
-        // fs::copy_dir_all(temp_dir.path(), output_dir).expect("Failed to copy tempdir to test_output directory");
-
         temp_dir.path().to_path_buf()
     }
 
