@@ -48,7 +48,7 @@ pub fn extract_operations_by_tag(
                 metadata: Metadata {
                     normalized_operation_id: clean_operation_id(
                         normalized_operation_id,
-                        normalized_tag.clone(),
+                        &normalized_tag,
                     ),
                 },
                 raw_parameters: op.parameters.clone(),
@@ -85,22 +85,26 @@ pub fn normalize_tag(tag: &str) -> Vec<String> {
 
 /// Normalize operation ID into word components
 pub fn normalize_operation_id(operation_id: &str) -> Vec<String> {
-    let chars: Vec<char> = operation_id.chars().collect();
-    let mut words: Vec<String> = Vec::new();
+    let mut words = Vec::new();
     let mut current = String::new();
+    let mut prev_is_lower = false;
+    let mut prev_is_upper = false;
 
-    for i in 0..chars.len() {
-        let ch = chars[i];
+    let mut chars = operation_id.chars().peekable();
+    while let Some(ch) = chars.next() {
         if ch.is_uppercase() {
-            let prev_lower = i > 0 && chars[i - 1].is_lowercase();
-            let prev_upper = i > 0 && chars[i - 1].is_uppercase();
-            let next_lower = i + 1 < chars.len() && chars[i + 1].is_lowercase();
-            if !current.is_empty() && (prev_lower || (prev_upper && next_lower)) {
-                words.push(current.clone());
-                current.clear();
+            let next_is_lower = chars.peek().is_some_and(|c| c.is_lowercase());
+            if !current.is_empty() && (prev_is_lower || (prev_is_upper && next_is_lower)) {
+                words.push(std::mem::take(&mut current));
             }
         }
-        current.push(ch.to_lowercase().next().unwrap());
+        // Handle characters that have multiple lowercase variants,
+        // though typically it's just one character.
+        for lower_ch in ch.to_lowercase() {
+            current.push(lower_ch);
+        }
+        prev_is_lower = ch.is_lowercase();
+        prev_is_upper = ch.is_uppercase();
     }
 
     if !current.is_empty() {
@@ -113,11 +117,11 @@ pub fn normalize_operation_id(operation_id: &str) -> Vec<String> {
 /// Clean operation ID by removing words that appear in the tag
 pub fn clean_operation_id(
     operation_id_as_vec: Vec<String>,
-    tag_as_vec: Vec<String>,
+    tag_as_slice: &[String],
 ) -> Vec<String> {
-    let mut cleaned_operation_id = Vec::new();
+    let mut cleaned_operation_id = Vec::with_capacity(operation_id_as_vec.len());
     for word in operation_id_as_vec {
-        if !tag_as_vec.contains(&word) {
+        if !tag_as_slice.contains(&word) {
             cleaned_operation_id.push(word.to_lowercase());
         }
     }
