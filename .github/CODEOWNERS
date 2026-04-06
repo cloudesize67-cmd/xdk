@@ -1,0 +1,5 @@
+# Branch protection: Require review from code owners for all changes
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for all files - requires review on every PR
+* @cloudesize67-cmd

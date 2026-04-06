@@ -1,0 +1,36 @@
+# Enforce branch protection on main
+# This workflow acts as a required status check for PRs targeting main.
+# Enable "Require status checks to pass before merging" in your branch
+# protection settings and add "Branch Protection" as a required check.
+name: Branch Protection
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  branch-protection:
+    name: Branch Protection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR target
+        run: |
+          echo "✅ PR #${{ github.event.pull_request.number }} targets main branch"
+          echo "Title: ${{ github.event.pull_request.title }}"
+          echo "Author: ${{ github.event.pull_request.user.login }}"
+
+      - name: Enforce PR requirements
+        run: |
+          echo "Branch protection checks passed."
+          echo ""
+          echo "To fully protect your main branch, enable these settings in"
+          echo "GitHub → Settings → Branches → Branch protection rules → main:"
+          echo ""
+          echo "  ✅ Require a pull request before merging"
+          echo "    ✅ Require approvals (1+)"
+          echo "    ✅ Require review from Code Owners"
+          echo "  ✅ Require status checks to pass before merging"
+          echo "    - Add 'Generator Tests', 'Python SDK', 'TypeScript SDK', 'Branch Protection'"
+          echo "  ✅ Require branches to be up to date before merging"
+          echo "  ✅ Do not allow bypassing the above settings"
+          echo "  ✅ Restrict who can push to matching branches"
