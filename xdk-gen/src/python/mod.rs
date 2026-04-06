@@ -16,26 +16,20 @@ mod tests {
     use crate::python::generator::Python;
     use std::fs;
     use std::path::Path;
-    use tempfile::Builder;
+    use tempfile::{Builder, TempDir};
     use xdk_lib::Result;
     use xdk_lib::generator::generate;
     use xdk_openapi::{OpenApi, OpenApiContextGuard, parse_json_file};
 
     // Helper function to create output directory for a test
-    fn create_output_dir() -> std::path::PathBuf {
+    fn create_output_dir() -> (TempDir, std::path::PathBuf) {
         let temp_dir = Builder::new()
             .prefix("test_output")
             .tempdir()
             .expect("Failed to create temporary directory");
 
-        // make a real dir from tempdir on ./test_output
-        // let output_dir = Path::new("./test_output");
-        // fs::create_dir_all(output_dir).expect("Failed to create test_output directory");
-
-        // // copy the tempdir to the output_dir
-        // fs::copy_dir_all(temp_dir.path(), output_dir).expect("Failed to copy tempdir to test_output directory");
-
-        temp_dir.path().to_path_buf()
+        let path = temp_dir.path().to_path_buf();
+        (temp_dir, path)
     }
 
     // Helper function to verify basic SDK structure
@@ -85,7 +79,7 @@ mod tests {
 
     #[test]
     fn test_simple_openapi() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/simple.json").unwrap();
         let result = setup_generator_and_generate(&openapi, &output_dir);
@@ -108,7 +102,7 @@ mod tests {
 
     #[test]
     fn test_components_reference() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/components_reference.json").unwrap();
         let result = setup_generator_and_generate(&openapi, &output_dir);
@@ -119,7 +113,7 @@ mod tests {
 
     #[test]
     fn test_nested_refs() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/nested_refs.json").unwrap();
         let result = setup_generator_and_generate(&openapi, &output_dir);
@@ -130,7 +124,7 @@ mod tests {
 
     #[test]
     fn test_request_response_refs() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/request_response_refs.json").unwrap();
 
@@ -142,7 +136,7 @@ mod tests {
 
     #[test]
     fn test_parameters_with_ref() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/parameters_with_ref.json").unwrap();
 
@@ -154,7 +148,7 @@ mod tests {
 
     #[test]
     fn test_schema_with_components_ref() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/schema_with_components_ref.json").unwrap();
 
@@ -166,7 +160,7 @@ mod tests {
 
     #[test]
     fn test_single_schema_no_ref() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/single_schema_no_ref.json").unwrap();
 
@@ -178,7 +172,7 @@ mod tests {
 
     #[test]
     fn test_multiple_paths_with_refs() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/multiple_paths_with_refs.json").unwrap();
 
@@ -190,7 +184,7 @@ mod tests {
 
     #[test]
     fn test_all_of() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/all_of.json").unwrap();
 
@@ -202,7 +196,7 @@ mod tests {
 
     #[test]
     fn test_single_path() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/single_path.json").unwrap();
 
@@ -214,7 +208,7 @@ mod tests {
 
     #[test]
     fn test_info() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/info.json").unwrap();
 
@@ -226,7 +220,7 @@ mod tests {
 
     #[test]
     fn test_operation_id_maps_to_function_name() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi =
             parse_json_file("../tests/openapi/operation_id_maps_to_function_name.json").unwrap();
@@ -240,7 +234,7 @@ mod tests {
 
     #[test]
     fn test_version_in_generated_files() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/simple.json").unwrap();
 
@@ -262,7 +256,7 @@ mod tests {
 
     #[test]
     fn test_user_agent_format() {
-        let output_dir = create_output_dir();
+        let (_temp_dir, output_dir) = create_output_dir();
         let _guard = OpenApiContextGuard::new();
         let openapi = parse_json_file("../tests/openapi/simple.json").unwrap();
 
