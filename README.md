@@ -2,6 +2,24 @@
 
 A Rust-based SDK generator that creates language-specific SDKs for the X API from OpenAPI specifications.
 
+## Table of Contents
+
+- [SDKs](#sdks)
+- [Architecture](#architecture)
+- [Development](#development)
+  - [Prerequisites](#prerequisites)
+  - [Generate SDKs Locally](#generate-sdks-locally)
+  - [Run Tests](#run-tests)
+- [Publishing](#publishing)
+- [Adding a New Language](#adding-a-new-language)
+  - [1. Create the generator](#1-create-the-generator)
+  - [2. Create templates](#2-create-templates)
+  - [3. Register the generator](#3-register-the-generator)
+  - [4. Add version config](#4-add-version-config)
+  - [5. Create SDK repo](#5-create-sdk-repo)
+  - [6. Update release workflow](#6-update-release-workflow)
+- [License](#license)
+
 ## SDKs
 
 | Language | Package | Repo |

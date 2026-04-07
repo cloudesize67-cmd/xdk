@@ -1,5 +1,13 @@
 # Publishing SDKs
 
+## Table of Contents
+
+- [Release an SDK](#release-an-sdk)
+- [Version Bumps](#version-bumps)
+- [Options](#options)
+- [Check Current Versions](#check-current-versions)
+- [SDK Repos](#sdk-repos)
+
 ## Release an SDK
 
 1. Go to **[Actions → Release SDK](https://github.com/xdevplatform/xdk/actions/workflows/release.yml)**

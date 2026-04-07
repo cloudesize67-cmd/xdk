@@ -1,5 +1,23 @@
 # XDK SDK Generator: Technical Architecture
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Core Architecture](#core-architecture)
+  - [1. Declarative Language Configuration](#1-declarative-language-configuration)
+  - [2. Language-Agnostic Processing Pipeline](#2-language-agnostic-processing-pipeline)
+- [Key Technical Innovations](#key-technical-innovations)
+  - [1. Macro-Driven Code Generation](#1-macro-driven-code-generation)
+  - [2. Intelligent Naming Convention System](#2-intelligent-naming-convention-system)
+  - [3. Unified Data Models](#3-unified-data-models)
+  - [4. Context-Rich Template System](#4-context-rich-template-system)
+- [End-to-End Generation Flow](#end-to-end-generation-flow)
+- [Extensibility Architecture](#extensibility-architecture)
+  - [Adding New Languages](#adding-new-languages)
+  - [Template System Features](#template-system-features)
+  - [Test Generation Framework](#test-generation-framework)
+- [Architecture Components](#architecture-components)
+
 ## Overview
 
 The XDK (X Development Kit) Generator is a powerful, language-agnostic SDK generation system that automatically creates Software Development Kits (SDKs) for the X API from OpenAPI 3.0 specifications. The system is designed with extensibility and maintainability at its core, using a macro-driven approach to minimize boilerplate while maximizing consistency across different target languages.

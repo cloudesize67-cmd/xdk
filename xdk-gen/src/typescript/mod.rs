@@ -14,6 +14,11 @@ mod tests {
             .prefix("test_output_ts")
             .tempdir()
             .expect("Failed to create temporary directory");
+
+        // NOTE: temp_dir is a TempDir object which deletes the directory when dropped.
+        // Returning the path here means the directory will be deleted as soon as this function returns.
+        // This is acceptable for tests that don't need the directory to persist beyond setup,
+        // but be aware that the returned path will point to a deleted directory.
         temp_dir.path().to_path_buf()
     }
 

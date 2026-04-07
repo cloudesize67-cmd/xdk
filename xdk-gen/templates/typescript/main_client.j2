@@ -446,6 +446,8 @@ export class Client {
 
   /**
    * Check if the OAuth2 token is expired
+   *
+   * @todo Implement full expiration check logic using 'expires_at' or 'expires_in' metadata.
    */
   isTokenExpired(): boolean {
     // TODO: Implement token expiration check
@@ -454,6 +456,8 @@ export class Client {
 
   /**
    * Refresh the OAuth2 token
+   *
+   * @todo Implement token refresh logic using the refresh_token from the OAuth2 User Context flow.
    */
   async refreshToken(): Promise<void> {
     // TODO: Implement token refresh
