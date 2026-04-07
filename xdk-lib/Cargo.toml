@@ -2,6 +2,7 @@
 name = "xdk-lib"
 version = "0.1.0"
 edition = "2024"
+publish = false
 
 [dependencies]
 openapi = { path = "../xdk-openapi", package = "xdk-openapi" }
