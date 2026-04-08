@@ -116,6 +116,12 @@ Create `xdevplatform/xdk-go` with CI workflows (see existing SDK repos for examp
 
 Add the new language to `.github/workflows/release.yml`.
 
+## Jules AI Integration
+
+We use [Jules](https://jules.google/), Google's autonomous AI coding agent, to automate coding tasks, generate PRs, and manage infrastructure tasks locally and in the cloud.
+
+For detailed instructions on how to set up the Jules CLI on your local machine and use the programmatic SDK to build agentic workflows, please read the [Jules Integration Guide](JULES_GUIDE.md).
+
 ## License
 
 MIT
