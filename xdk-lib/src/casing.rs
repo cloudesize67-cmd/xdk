@@ -29,11 +29,9 @@ impl Casing {
                     result
                 }
             }
-            Casing::Pascal => words
-                .iter()
-                .map(|w| pascal_case(w))
-                .collect::<Vec<_>>()
-                .join(""),
+            // Using collect::<String>() directly avoids an intermediate Vec allocation
+            // which improves performance by eliminating unnecessary heap allocations.
+            Casing::Pascal => words.iter().map(|w| pascal_case(w)).collect::<String>(),
             Casing::Kebab => words.join("-").to_lowercase(),
             Casing::ScreamingSnake => words.join("_").to_uppercase(),
         }
