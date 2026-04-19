@@ -1,0 +1,3 @@
+## 2024-04-19 - Removed Deep Clone from Value to Schema Parser
+**Learning:** In xdk-openapi parsing from intermediate values (`serde_yaml::Value`, `serde_json::Value`), using `from_value(value.clone())` introduces unnecessary deep clones of the value tree and heap allocations. The `Value` types implement `Deserializer`, allowing `T::deserialize(&value)` which optimally borrows the value and avoids the deep clone, especially significant in openapi structures with large components.
+**Action:** Prefer `T::deserialize(&value)` over `serde_json::from_value` / `serde_yaml::from_value(value.clone())` when deserializing out of value graphs in intermediate memory representations.
