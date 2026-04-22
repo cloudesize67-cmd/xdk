@@ -1,0 +1,3 @@
+## 2024-05-24 - Avoid Intermediate Vec Allocations for Iterator Sources in Rust
+**Learning:** In Rust, converting a string split like `.split("\n")` into a `Vec` via `.collect::<Vec<&str>>()` only to immediately iterate over it with `.into_iter()` is a performance anti-pattern. It forces unnecessary allocations on the heap. Also, using string slices for single-character splits (e.g., `"\n"`) is less efficient than using character literals (e.g., `'\n'`).
+**Action:** When transforming and aggregating collections of strings or iterating over string splits, iterate directly over the iterator source (`.split('\n')`) without intermediate collection unless explicitly necessary. Also, use character-based splits where possible.
