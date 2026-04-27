@@ -75,7 +75,7 @@ mod tests {
         let config_section = contents
             .split("export interface ClientConfig")
             .nth(1)
-            .and_then(|s| s.split("}").next())
+            .and_then(|s| s.split('}').next())
             .expect("Failed to find ClientConfig interface");
 
         assert!(
