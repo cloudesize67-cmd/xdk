@@ -1,0 +1,3 @@
+## 2026-04-28 - [Performance: Deserialize &Value instead of from_value(Value)]
+**Learning:** In xdk-openapi parsing phase, the schema value is obtained initially as `serde_json::Value` / `serde_yaml::Value`. Deserializing standard sub-structs using `serde_json::from_value` requires an owned `Value` so deep-cloning with `.clone()` is necessary and expensive (O(N) in tree nodes).
+**Action:** `&Value` implements `Deserializer`. We can avoid `clone()` by calling `Type::deserialize(&value)` which skips the redundant internal allocations and acts efficiently. Use this pattern across standard `serde` intermediate `Value` representations.
