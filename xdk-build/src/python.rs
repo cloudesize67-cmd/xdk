@@ -160,13 +160,16 @@ fn run_formatter(output_dir: &Path, venv_python_path: &Path, script_path: &Path)
     if !stdout.trim().is_empty() {
         println!();
         stdout
-            .split("\n")
-            .collect::<Vec<&str>>()
-            .into_iter()
+            .split('\n')
+
+
             .for_each(|line| {
-                let parts = line.split(" ").collect::<Vec<&str>>();
-                if parts.len() == 2 {
-                    log_info!("{} {}", parts[0], parts[1].magenta());
+                let mut parts = line.split(' ');
+                let p1 = parts.next();
+                let p2 = parts.next();
+                let p3 = parts.next();
+                if let (Some(part1), Some(part2), None) = (p1, p2, p3) {
+                    log_info!("{} {}", part1, part2.magenta());
                 }
             });
         println!();
