@@ -1,0 +1,3 @@
+## 2024-05-18 - [Rust Iterator Optimization]
+**Learning:** In Rust, avoid intermediate allocations by iterating directly over iterator sources (like `.split()`) rather than calling `.collect::<Vec<_>>().into_iter()`. Also, avoid allocating a `Vec` when extracting a fixed number of elements from an iterator by using pattern matching directly on multiple `.next()` calls. Furthermore, use character-based splits (e.g., `.split('\n')`) rather than string-based splits (e.g., `.split("\n")`) for single characters to improve execution speed.
+**Action:** Always prefer character-based splits, and avoid collecting iterators into intermediate Vecs if a fixed number of fields are needed or a direct loop works.
