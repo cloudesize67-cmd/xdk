@@ -1,0 +1,3 @@
+## 2024-05-24 - [Avoid Unnecessary Vec Allocations for Iterator Output]
+**Learning:** Using `.collect::<Vec<_>>().join("")` allocates an unnecessary intermediate `Vec` when building strings from iterators. Using `.collect::<String>()` performs the same logic without intermediate vector allocations. Also replacing `.split("\n").collect::<Vec<&str>>().into_iter()` with `.split('\n')` and similar for space separating eliminates multiple `Vec` allocations during string formatting.
+**Action:** Always prefer `.collect::<String>()` over `.collect::<Vec<_>>().join("")` when concatenating string components in Rust. For string splitting, use direct iterator methods over intermediate collection.
