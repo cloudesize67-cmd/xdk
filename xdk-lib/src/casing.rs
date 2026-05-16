@@ -29,11 +29,8 @@ impl Casing {
                     result
                 }
             }
-            Casing::Pascal => words
-                .iter()
-                .map(|w| pascal_case(w))
-                .collect::<Vec<_>>()
-                .join(""),
+            // Bolt optimization: collect directly to String instead of intermediate Vec + join
+            Casing::Pascal => words.iter().map(|w| pascal_case(w)).collect::<String>(),
             Casing::Kebab => words.join("-").to_lowercase(),
             Casing::ScreamingSnake => words.join("_").to_uppercase(),
         }
