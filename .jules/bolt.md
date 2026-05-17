@@ -1,0 +1,3 @@
+## 2024-05-24 - Iterator Splitting Performance and Scratch Artifacts
+**Learning:** In Rust, chained intermediate `Vec` allocations (`.collect::<Vec<_>>().into_iter()`) for operations like string splitting can be up to 2-3x slower than direct iteration. Replacing string splits with character splits (`.split('\n')`) provides an additional marginal boost. Additionally, using standalone scratch files (e.g. `test_perf.rs`) to verify performance claims locally is helpful due to network environment constraints, but the compiled binaries and scripts *must* be removed to avoid polluting the workspace repository prior to PR submission.
+**Action:** Always prefer direct iteration over intermediate `Vec` collections. Always clean up local scratch files after validating hypotheses.
