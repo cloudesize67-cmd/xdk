@@ -1,0 +1,3 @@
+## 2024-05-19 - Removed excessive Serde AST cloning during OpenAPI parsing
+**Learning:** `serde_yaml::from_value` and `serde_json::from_value` consume the provided `Value`, forcing the caller to use `.clone()` if they only have a reference. This leads to extremely inefficient full-tree deep clones of the AST (which can be huge for OpenAPI specs). The structs implement `DeserializeOwned` so they don't actually borrow from the AST.
+**Action:** Always prefer `T::deserialize(&value)` over `from_value(value.clone())` when extracting specific components from intermediate representations. This avoids intermediate deep clones completely.
