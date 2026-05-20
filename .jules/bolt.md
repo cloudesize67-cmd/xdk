@@ -1,0 +1,3 @@
+## 2024-05-20 - String and Iterator Micro-Optimizations
+**Learning:** In hot or frequently executed string manipulations, intermediate `Vec` allocations from `collect()` can be surprisingly costly in Rust. `collect::<String>()` handles direct string concatenation more efficiently. Similarly, `split` on strings vs characters (`"\n"` vs `'\n'`) carries measurable overhead, and chaining iterators directly avoids temporary vector allocations.
+**Action:** Always prefer `collect::<String>()` for aggregating strings instead of `.collect::<Vec<_>>().join("")`. Prefer `char`-based over string-slice-based splits, and extract elements via pattern-matching on the iterator's `.next()` to avoid intermediate `.collect::<Vec<_>>()` calls.
