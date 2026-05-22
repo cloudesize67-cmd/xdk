@@ -1,0 +1,47 @@
+--- xdk-lib/src/testing.rs
++++ xdk-lib/src/testing.rs
+@@ -140,6 +140,43 @@
+     pub mock_scenarios: Vec<MockScenario>,
+ }
+
++/// Analysis of an operation's pagination capabilities
++#[derive(Debug, Clone)]
++pub struct PaginationAnalysis {
++    pub supports_pagination: bool,
++    pub token_param: Option<String>,
++    pub max_results_param: Option<String>,
++}
++
++impl PaginationAnalysis {
++    /// Perform a single-pass analysis over operation parameters to find pagination fields
++    pub fn analyze(operation: &OperationInfo) -> Self {
++        let mut token_param = None;
++        let mut max_results_param = None;
++
++        if let Some(parameters) = &operation.parameters {
++            for param in parameters {
++                match param.original_name.as_str() {
++                    "pagination_token" | "next_token" | "cursor" => {
++                        token_param = Some(param.original_name.clone());
++                    }
++                    "max_results" | "limit" | "count" => {
++                        max_results_param = Some(param.original_name.clone());
++                    }
++                    _ => {}
++                }
++            }
++        }
++
++        let supports_pagination = token_param.is_some() && max_results_param.is_some();
++
++        Self {
++            supports_pagination,
++            token_param,
++            max_results_param,
++        }
++    }
++}
++
+ /// Test specification for validating SDK structure
+ #[derive(Debug, Serialize, Clone)]
+ pub struct StructuralTest {
