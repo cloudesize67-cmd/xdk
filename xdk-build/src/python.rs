@@ -159,16 +159,14 @@ fn run_formatter(output_dir: &Path, venv_python_path: &Path, script_path: &Path)
     let stdout = String::from_utf8_lossy(&output.stdout);
     if !stdout.trim().is_empty() {
         println!();
-        stdout
-            .split("\n")
-            .collect::<Vec<&str>>()
-            .into_iter()
-            .for_each(|line| {
-                let parts = line.split(" ").collect::<Vec<&str>>();
-                if parts.len() == 2 {
-                    log_info!("{} {}", parts[0], parts[1].magenta());
-                }
-            });
+        // Optimization: Iterating directly over `split` and matching the elements
+        // avoids allocating intermediate Vecs for both lines and individual parts.
+        stdout.split('\n').for_each(|line| {
+            let mut parts = line.split(' ');
+            if let (Some(part0), Some(part1), None) = (parts.next(), parts.next(), parts.next()) {
+                log_info!("{} {}", part0, part1.magenta());
+            }
+        });
         println!();
     }
 
