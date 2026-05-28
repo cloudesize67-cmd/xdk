@@ -159,16 +159,16 @@ fn run_formatter(output_dir: &Path, venv_python_path: &Path, script_path: &Path)
     let stdout = String::from_utf8_lossy(&output.stdout);
     if !stdout.trim().is_empty() {
         println!();
-        stdout
-            .split("\n")
-            .collect::<Vec<&str>>()
-            .into_iter()
-            .for_each(|line| {
-                let parts = line.split(" ").collect::<Vec<&str>>();
-                if parts.len() == 2 {
-                    log_info!("{} {}", parts[0], parts[1].magenta());
-                }
-            });
+        // Bolt performance optimization:
+        // Avoided creating intermediate `Vec` allocations during string processing
+        // and used character-based splitting `split('\n')` instead of `split("\n")`.
+        // Extracted elements using pattern matching directly on `parts.next()`.
+        stdout.split('\n').for_each(|line| {
+            let mut parts = line.split(' ');
+            if let (Some(p0), Some(p1), None) = (parts.next(), parts.next(), parts.next()) {
+                log_info!("{} {}", p0, p1.magenta());
+            }
+        });
         println!();
     }
 
