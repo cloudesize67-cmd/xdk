@@ -1,0 +1,3 @@
+## $(date +%Y-%m-%d) - Eliminate Deep Clones in Serde Value Deserialization
+**Learning:** During OpenAPI parsing, iterating over object fields from a `serde_json::Value` or `serde_yaml::Value` and attempting to extract components (like Schemas, Parameters) via `serde_json::from_value(value.clone())` causes expensive O(N) deep clones of the entire JSON/YAML sub-tree just to satisfy the ownership requirements of `from_value`.
+**Action:** Always prefer using `T::deserialize(value)` when extracting objects directly from an intermediate `&serde_json::Value` or `&serde_yaml::Value`. This allows Serde to deserialize the target struct directly from the reference without allocating and duplicating the intermediate AST representation.
