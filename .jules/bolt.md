@@ -1,0 +1,3 @@
+## 2024-05-24 - Avoid Deep Clones in Serde Intermediates
+**Learning:** When parsing intermediate JSON/YAML nodes via Serde (like parsing components from an OpenAPI spec before processing the whole file), using `serde_json::from_value(value.clone())` or `serde_yaml::from_value(value.clone())` introduces expensive deep cloning of the entire `Value` tree. This is a common performance pitfall in Rust when manipulating dynamic JSON/YAML trees.
+**Action:** Always prefer `T::deserialize(&value)` over `from_value(value.clone())` for intermediate `Value` nodes to avoid deep clones. However, when consuming the entire `Value` tree at the very end of parsing, prefer `from_value(value)` (without cloning) so Serde can move strings and data directly without re-allocating.
