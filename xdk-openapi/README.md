@@ -94,8 +94,8 @@ let response_schema = openapi.paths.get("/test")
 assert_eq!(response_schema.r#type.unwrap(), "object");
 
 // Parse from a file (guard still required)
-// let _guard = OpenApiContextGuard::new();
-// let openapi_from_file = parse_yaml_file("path/to/openapi.yaml")?;
+let _guard = OpenApiContextGuard::new();
+let openapi_from_file = parse_yaml_file("path/to/openapi.yaml")?;
 ```
 
 ### Parse from JSON
@@ -158,8 +158,8 @@ assert_eq!(response.description, "Successful response");
 
 
 // Parse from a file (guard still required)
-// let _guard = OpenApiContextGuard::new();
-// let openapi_from_file = parse_json_file("path/to/openapi.json")?;
+let _guard = OpenApiContextGuard::new();
+let openapi_from_file = parse_json_file("path/to/openapi.json")?;
 ```
 
 ### Handling References (`$ref`)
