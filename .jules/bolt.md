@@ -1,0 +1,3 @@
+## 2024-05-18 - Avoid unnecessary allocations when applying casing rules
+**Learning:** Found string formatting logic in `xdk-lib/src/casing.rs` causing intermediate allocations. E.g., `words.iter().map(|w| pascal_case(w)).collect::<Vec<_>>().join("")` creates an unnecessary `Vec` allocation before `.join("")` and can be simplified using an iterator structure like string concatenation. Similarly, converting a char to a lowercase string should not use `collect::<String>()` when `to_string()` avoids iterator overhead.
+**Action:** Replace `collect::<Vec<_>>().join("")` with `fold` or looping to avoid creating intermediate `Vec` instances. Replace `.to_lowercase().collect::<String>()` with `.to_lowercase().to_string()`.
