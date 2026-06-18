@@ -1,0 +1,3 @@
+## 2024-05-15 - Avoid deep clones during Serde Value parsing
+**Learning:** In the `xdk-openapi` two-pass parser, using `serde_json::from_value(value.clone())` or `serde_yaml::from_value(value.clone())` to parse components from the intermediate AST is significantly slower (up to 2x overhead) because it forces a deep clone of the entire JSON/YAML node tree into memory just to consume it.
+**Action:** When extracting data from a `serde_json::Value` or `serde_yaml::Value` without consuming the whole tree, use `serde::Deserialize::deserialize(&value)` (or `T::deserialize(&value)`) to directly interpret references from the AST and avoid unnecessary deep cloning.
