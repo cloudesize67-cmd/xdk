@@ -1,0 +1,3 @@
+## 2024-05-18 - String and Iterator Optimizations in OpenAPI Parser
+**Learning:** Found string processing bottlenecks during OpenAPI parsing in `normalize_operation_id` (converting `String` to `Vec<char>`) and `clean_operation_id` (cloning `Vec<String>` and missing capacity allocations). Simple iterator operations like `.chars().peekable()` and passing string slices `&[String]` significantly reduce memory overhead during large spec processing.
+**Action:** Always prefer iterating strings directly using `.chars()` with state tracking instead of `.collect::<Vec<char>>()` when inspecting boundaries. Accept slices instead of vectors to avoid clone-on-call patterns, and pre-allocate collections with `.with_capacity` when output bounds are known.
