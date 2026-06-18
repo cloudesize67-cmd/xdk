@@ -1,0 +1,3 @@
+## 2024-05-16 - [Deep Clone Serde Avoidance]
+**Learning:** In xdk-openapi, when deserializing components from an intermediate JSON/YAML Value into Rust types, `from_value(value.clone())` forces a deep copy of the tree. However, Serde’s `Deserialize` trait allows calling `T::deserialize(&value)` which borrows the intermediate representation, saving O(N) allocations for strings/arrays/objects within the tree when only a single read pass is needed. Finally at the end when deserializing the root value, you can use `from_value(value)` (without cloning) since we no longer need the root value tree.
+**Action:** Replace `serde_json::from_value::<T>(val.clone())` and `serde_yaml::from_value::<T>(val.clone())` with `T::deserialize(val)` by bringing `Deserialize` into scope.
