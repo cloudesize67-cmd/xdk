@@ -48,7 +48,7 @@ pub fn extract_operations_by_tag(
                 metadata: Metadata {
                     normalized_operation_id: clean_operation_id(
                         normalized_operation_id,
-                        normalized_tag.clone(),
+                        &normalized_tag,
                     ),
                 },
                 raw_parameters: op.parameters.clone(),
@@ -113,11 +113,11 @@ pub fn normalize_operation_id(operation_id: &str) -> Vec<String> {
 /// Clean operation ID by removing words that appear in the tag
 pub fn clean_operation_id(
     operation_id_as_vec: Vec<String>,
-    tag_as_vec: Vec<String>,
+    tag_as_slice: &[String],
 ) -> Vec<String> {
     let mut cleaned_operation_id = Vec::new();
     for word in operation_id_as_vec {
-        if !tag_as_vec.contains(&word) {
+        if !tag_as_slice.contains(&word) {
             cleaned_operation_id.push(word.to_lowercase());
         }
     }
