@@ -140,6 +140,44 @@ pub struct TestSpecification {
     pub mock_scenarios: Vec<MockScenario>,
 }
 
+/// Analysis of an operation's pagination capabilities
+#[derive(Debug, Clone)]
+pub struct PaginationAnalysis {
+    pub supports_pagination: bool,
+    pub token_param: Option<String>,
+    pub max_results_param: Option<String>,
+}
+
+impl PaginationAnalysis {
+    /// Perform a single-pass analysis over operation parameters to find pagination fields
+    pub fn analyze(operation: &OperationInfo) -> Self {
+        let mut token_param = None;
+        let mut max_results_param = None;
+
+        if let Some(parameters) = &operation.parameters {
+            for param in parameters {
+                match param.original_name.as_str() {
+                    "pagination_token" | "next_token" | "cursor" => {
+                        token_param = Some(param.original_name.clone());
+                    }
+                    "max_results" | "limit" | "count" => {
+                        max_results_param = Some(param.original_name.clone());
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        let supports_pagination = token_param.is_some() && max_results_param.is_some();
+
+        Self {
+            supports_pagination,
+            token_param,
+            max_results_param,
+        }
+    }
+}
+
 /// Test specification for validating SDK structure
 #[derive(Debug, Serialize, Clone)]
 pub struct StructuralTest {
@@ -278,23 +316,26 @@ pub fn generate_test_specifications(
         let mut pagination_tests = Vec::new();
         let mut mock_scenarios = Vec::new();
 
+        let analyses: Vec<PaginationAnalysis> =
+            operations.iter().map(PaginationAnalysis::analyze).collect();
+
         // Generate structural tests for this tag
-        let structural_test = generate_structural_test(tag, operations);
+        let structural_test = generate_structural_test(tag, operations, &analyses);
         structural_tests.push(structural_test);
 
         // Generate contract and mock tests for each operation
-        for operation in operations {
+        for (operation, analysis) in operations.iter().zip(analyses.iter()) {
             let contract_test = generate_contract_test(operation);
             contract_tests.push(contract_test);
 
             // Generate pagination tests if operation supports pagination
-            if detect_pagination_support(operation) {
-                let pagination_test = generate_pagination_test(operation);
+            if analysis.supports_pagination {
+                let pagination_test = generate_pagination_test(operation, analysis);
                 pagination_tests.push(pagination_test);
             }
 
             // Generate mock scenarios for this operation
-            let scenarios = generate_mock_scenarios(operation);
+            let scenarios = generate_mock_scenarios(operation, analysis);
             mock_scenarios.extend(scenarios);
         }
 
@@ -313,8 +354,16 @@ pub fn generate_test_specifications(
 }
 
 /// Generate structural test for a tag/client
-fn generate_structural_test(tag: &str, operations: &[OperationInfo]) -> StructuralTest {
-    let methods: Vec<MethodSignature> = operations.iter().map(generate_method_signature).collect();
+fn generate_structural_test(
+    tag: &str,
+    operations: &[OperationInfo],
+    analyses: &[PaginationAnalysis],
+) -> StructuralTest {
+    let methods: Vec<MethodSignature> = operations
+        .iter()
+        .zip(analyses.iter())
+        .map(|(op, analysis)| generate_method_signature(op, analysis))
+        .collect();
 
     StructuralTest {
         client_name: format!("{}Client", tag),
@@ -328,7 +377,10 @@ fn generate_structural_test(tag: &str, operations: &[OperationInfo]) -> Structur
 }
 
 /// Generate method signature from operation info
-fn generate_method_signature(operation: &OperationInfo) -> MethodSignature {
+fn generate_method_signature(
+    operation: &OperationInfo,
+    analysis: &PaginationAnalysis,
+) -> MethodSignature {
     let (required_params, optional_params) = extract_parameters(operation);
 
     MethodSignature {
@@ -337,7 +389,7 @@ fn generate_method_signature(operation: &OperationInfo) -> MethodSignature {
         required_params,
         optional_params,
         return_type: format!("{}Response", operation.class_name),
-        supports_pagination: detect_pagination_support(operation),
+        supports_pagination: analysis.supports_pagination,
     }
 }
 
@@ -504,35 +556,14 @@ fn extract_security_requirements(operation: &OperationInfo) -> Vec<String> {
     }
 }
 
-/// Detect if operation supports pagination
-/// Requires both a pagination token parameter AND a limit parameter for true pagination
-fn detect_pagination_support(operation: &OperationInfo) -> bool {
-    if let Some(parameters) = &operation.parameters {
-        let has_token = parameters.iter().any(|param| {
-            matches!(
-                param.original_name.as_str(),
-                "pagination_token" | "next_token" | "cursor"
-            )
-        });
-
-        let has_limit = parameters.iter().any(|param| {
-            matches!(
-                param.original_name.as_str(),
-                "max_results" | "limit" | "count"
-            )
-        });
-
-        // Require BOTH token and limit parameters for true pagination support
-        has_token && has_limit
-    } else {
-        false
-    }
-}
-
 /// Generate pagination test for operation
-fn generate_pagination_test(operation: &OperationInfo) -> PaginationTest {
+fn generate_pagination_test(
+    operation: &OperationInfo,
+    analysis: &PaginationAnalysis,
+) -> PaginationTest {
     let (required_params, _optional_params) = extract_parameters(operation);
-    let (token_param, max_results_param) = extract_pagination_params(operation);
+    let token_param = analysis.token_param.clone();
+    let max_results_param = analysis.max_results_param.clone();
 
     // Filter out pagination parameters from required params
     let filtered_required_params: Vec<TestParameter> = required_params
@@ -555,30 +586,11 @@ fn generate_pagination_test(operation: &OperationInfo) -> PaginationTest {
     }
 }
 
-/// Extract pagination parameter names
-fn extract_pagination_params(operation: &OperationInfo) -> (Option<String>, Option<String>) {
-    let mut token_param = None;
-    let mut max_results_param = None;
-
-    if let Some(parameters) = &operation.parameters {
-        for param in parameters {
-            match param.original_name.as_str() {
-                "pagination_token" | "next_token" | "cursor" => {
-                    token_param = Some(param.original_name.clone());
-                }
-                "max_results" | "limit" | "count" => {
-                    max_results_param = Some(param.original_name.clone());
-                }
-                _ => {}
-            }
-        }
-    }
-
-    (token_param, max_results_param)
-}
-
 /// Generate mock scenarios for an operation
-fn generate_mock_scenarios(operation: &OperationInfo) -> Vec<MockScenario> {
+fn generate_mock_scenarios(
+    operation: &OperationInfo,
+    analysis: &PaginationAnalysis,
+) -> Vec<MockScenario> {
     let mut scenarios = Vec::new();
 
     // Success scenario
@@ -586,7 +598,7 @@ fn generate_mock_scenarios(operation: &OperationInfo) -> Vec<MockScenario> {
         method_name: operation.method_name.clone(),
         scenario_name: "success".to_string(),
         status_code: 200,
-        response_body: generate_success_response(operation),
+        response_body: generate_success_response(operation, analysis),
         request_params: generate_request_params(operation),
         description: "Successful response scenario".to_string(),
     });
@@ -624,7 +636,10 @@ fn generate_mock_scenarios(operation: &OperationInfo) -> Vec<MockScenario> {
 }
 
 /// Generate success response mock data from OpenAPI schema
-fn generate_success_response(operation: &OperationInfo) -> serde_json::Value {
+fn generate_success_response(
+    operation: &OperationInfo,
+    analysis: &PaginationAnalysis,
+) -> serde_json::Value {
     // Try to generate response based on actual OpenAPI response schema
     if let Some(response) = operation.responses.get("200")
         && let Some(mock_data) = generate_mock_from_response_schema(response)
@@ -633,7 +648,7 @@ fn generate_success_response(operation: &OperationInfo) -> serde_json::Value {
     }
 
     // Fallback to simple mock response
-    if detect_pagination_support(operation) {
+    if analysis.supports_pagination {
         serde_json::json!({
             "data": [
                 {"id": "1", "name": "Test Item 1"},
