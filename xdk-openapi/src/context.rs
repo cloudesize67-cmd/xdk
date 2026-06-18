@@ -146,7 +146,9 @@ impl OpenApiContext {
     }
 
     /// Gets all schemas with their names and definitions
-    pub fn get_schemas(&self) -> Vec<(String, Schema)> {
+    /// Performance optimization: We return Rc<Schema> instead of Schema to avoid
+    /// deep cloning large schema structures during SDK generation.
+    pub fn get_schemas(&self) -> Vec<(String, Rc<Schema>)> {
         self.components
             .iter()
             .filter_map(|(path, component)| {
@@ -154,7 +156,7 @@ impl OpenApiContext {
                     match component {
                         StoredComponent::Schema(rc) => path
                             .strip_prefix("#/components/schemas/")
-                            .map(|name| (name.to_string(), rc.as_ref().clone())),
+                            .map(|name| (name.to_string(), rc.clone())),
                         _ => None,
                     }
                 } else {

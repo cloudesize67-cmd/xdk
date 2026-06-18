@@ -50,7 +50,9 @@ struct SchemasContext {
 #[derive(Debug, Serialize)]
 struct SchemaInfo {
     name: String,
-    schema: xdk_openapi::Schema,
+    // Performance optimization: Use Rc<Schema> to avoid deep cloning
+    // large schemas when preparing data for template rendering.
+    schema: std::rc::Rc<xdk_openapi::Schema>,
 }
 
 /*
