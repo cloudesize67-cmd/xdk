@@ -29,11 +29,8 @@ impl Casing {
                     result
                 }
             }
-            Casing::Pascal => words
-                .iter()
-                .map(|w| pascal_case(w))
-                .collect::<Vec<_>>()
-                .join(""),
+            // PERF: Direct collection into String avoids an intermediate Vec allocation
+            Casing::Pascal => words.iter().map(|w| pascal_case(w)).collect::<String>(),
             Casing::Kebab => words.join("-").to_lowercase(),
             Casing::ScreamingSnake => words.join("_").to_uppercase(),
         }
@@ -118,6 +115,7 @@ pub fn camel_case(value: &str) -> String {
     let mut chars = pascal.chars();
     match chars.next() {
         None => String::new(),
-        Some(first) => first.to_lowercase().collect::<String>() + chars.as_str(),
+        // PERF: Leverage Display implementation via to_string() rather than iterator collection
+        Some(first) => first.to_lowercase().to_string() + chars.as_str(),
     }
 }
