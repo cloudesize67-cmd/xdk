@@ -1,0 +1,3 @@
+## 2024-06-26 - String Concatenation Optimization
+**Learning:** In Rust, `.collect::<Vec<_>>().join("")` allocates an intermediate vector on the heap just to hold strings before joining them. Similarly, chaining `.collect::<String>()` when converting cases (like `.to_lowercase().collect::<String>()`) creates an intermediate string buffer.
+**Action:** When joining strings without a separator, directly collect into a String using `.collect::<String>()`. When converting the casing of a single character, leverage its Display implementation directly with `.to_lowercase().to_string()` to avoid unnecessary intermediate heap allocations.
