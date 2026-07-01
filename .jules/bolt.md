@@ -1,0 +1,3 @@
+## 2024-07-01 - Avoid intermediate Vec allocations for string concatenation
+**Learning:** In Rust, when mapping an iterator of strings and joining them, using `.collect::<String>()` directly is more efficient than `.collect::<Vec<_>>().join("")` because it avoids an intermediate heap allocation for the vector. Additionally, for `char::to_lowercase()`, chaining `.to_string()` is preferred over `.collect::<String>()` because it leverages the `Display` implementation and avoids unnecessary iterator collection overhead.
+**Action:** When performing string concatenations on iterators, prefer `.collect::<String>()` to aggregate into a single string directly. When converting a `char` to lower/upper case string, use `.to_string()`.
