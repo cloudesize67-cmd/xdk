@@ -1,0 +1,3 @@
+## 2024-07-04 - Eliminate Intermediate Vec Allocation in String Joining
+**Learning:** Found an instance in `xdk-lib/src/casing.rs` where an iterator producing strings was collected into a `Vec` only to be immediately joined into a single `String` via `.collect::<Vec<_>>().join("")`. String concatenation and collection handles elements efficiently using `.collect::<String>()`, saving memory and reducing time by avoiding intermediate `Vec` allocations.
+**Action:** When transforming and aggregating collections of strings in Rust, avoid creating intermediate allocations. Use `.collect::<String>()` instead of `.collect::<Vec<_>>().join("")` for string concatenation.
