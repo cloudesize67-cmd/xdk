@@ -1,0 +1,3 @@
+## 2023-11-20 - [Performance Optimization: avoid clone in deserialization]
+**Learning:** Serde provides `serde_json::from_value` which consumes the input `Value`, moving strings instead of cloning them, which is ideal if consuming the whole tree at the end. However, when parsing intermediate structures, avoid deep clones with `value.clone()` and instead use `T::deserialize(value)` after importing `use serde::Deserialize`. This deserializes from a reference without incurring deep cloning costs.
+**Action:** Always prefer `T::deserialize(val)` for intermediate Serde deserializations to eliminate `.clone()` overhead on large nested JSON/YAML structures.
