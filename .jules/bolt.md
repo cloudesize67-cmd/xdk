@@ -1,0 +1,3 @@
+## 2024-07-08 - [Avoid Serde Deep Clones During Parsing]
+**Learning:** Calling `.clone()` on intermediate `serde_yaml::Value` and `serde_json::Value` objects just to pass them into `from_value` allocates memory for every nested AST node, causing severe performance bottlenecks when parsing large specs.
+**Action:** Replace `serde_yaml::from_value::<Type>(value.clone())` with `Type::deserialize(value)` (requires `use serde::Deserialize;`) to allow `serde` to read directly from the borrowed AST reference. Keep un-cloned `from_value` calls intact at the end of functions to consume the full tree without re-allocating.
