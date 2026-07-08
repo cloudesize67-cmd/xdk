@@ -3,6 +3,8 @@
 //! This module provides functions for parsing OpenAPI specifications from YAML or JSON formats.
 //! It supports both string inputs and file paths.
 
+use serde::Deserialize;
+
 use crate::context::OpenApiContextGuard;
 use crate::core::OpenApi;
 use crate::error::OpenApiError;
@@ -56,9 +58,7 @@ pub fn parse_yaml(yaml: &str) -> Result<OpenApi> {
             if let Some(schemas) = components.get("schemas").and_then(|s| s.as_mapping()) {
                 for (name, schema_val) in schemas {
                     if let Some(name_str) = name.as_str() {
-                        match serde_yaml::from_value::<crate::components::Schema>(
-                            schema_val.clone(),
-                        ) {
+                        match crate::components::Schema::deserialize(schema_val) {
                             Ok(schema) => ctx.add_schema(name_str.to_string(), schema),
                             Err(e) => {
                                 eprintln!("Warning: Failed to parse schema {name_str}: {e}")
@@ -70,9 +70,7 @@ pub fn parse_yaml(yaml: &str) -> Result<OpenApi> {
             if let Some(parameters) = components.get("parameters").and_then(|p| p.as_mapping()) {
                 for (name, param_val) in parameters {
                     if let Some(name_str) = name.as_str() {
-                        match serde_yaml::from_value::<crate::components::Parameter>(
-                            param_val.clone(),
-                        ) {
+                        match crate::components::Parameter::deserialize(param_val) {
                             Ok(param) => ctx.add_parameter(name_str.to_string(), param),
                             Err(e) => {
                                 eprintln!("Warning: Failed to parse parameter {name_str}: {e}")
@@ -84,7 +82,7 @@ pub fn parse_yaml(yaml: &str) -> Result<OpenApi> {
             if let Some(responses) = components.get("responses").and_then(|r| r.as_mapping()) {
                 for (name, resp_val) in responses {
                     if let Some(name_str) = name.as_str() {
-                        match serde_yaml::from_value::<crate::core::Response>(resp_val.clone()) {
+                        match crate::core::Response::deserialize(resp_val) {
                             Ok(resp) => ctx.add_response(name_str.to_string(), resp),
                             Err(e) => {
                                 eprintln!("Warning: Failed to parse response {name_str}: {e}")
@@ -99,7 +97,7 @@ pub fn parse_yaml(yaml: &str) -> Result<OpenApi> {
             {
                 for (name, rb_val) in request_bodies {
                     if let Some(name_str) = name.as_str() {
-                        match serde_yaml::from_value::<crate::core::RequestBody>(rb_val.clone()) {
+                        match crate::core::RequestBody::deserialize(rb_val) {
                             Ok(rb) => ctx.add_request_body(name_str.to_string(), rb),
                             Err(e) => {
                                 eprintln!("Warning: Failed to parse requestBody {name_str}: {e}")
@@ -211,7 +209,7 @@ pub fn parse_json(json: &str) -> Result<OpenApi> {
         OpenApiContextGuard::with_context_mut(|ctx| {
             if let Some(schemas) = components.get("schemas").and_then(|s| s.as_object()) {
                 for (name, schema_val) in schemas {
-                    match serde_json::from_value::<crate::components::Schema>(schema_val.clone()) {
+                    match crate::components::Schema::deserialize(schema_val) {
                         Ok(schema) => ctx.add_schema(name.clone(), schema),
                         Err(e) => eprintln!("Warning: Failed to parse schema {name}: {e}"),
                     }
@@ -219,8 +217,7 @@ pub fn parse_json(json: &str) -> Result<OpenApi> {
             }
             if let Some(parameters) = components.get("parameters").and_then(|p| p.as_object()) {
                 for (name, param_val) in parameters {
-                    match serde_json::from_value::<crate::components::Parameter>(param_val.clone())
-                    {
+                    match crate::components::Parameter::deserialize(param_val) {
                         Ok(param) => ctx.add_parameter(name.clone(), param),
                         Err(e) => eprintln!("Warning: Failed to parse parameter {name}: {e}"),
                     }
@@ -228,7 +225,7 @@ pub fn parse_json(json: &str) -> Result<OpenApi> {
             }
             if let Some(responses) = components.get("responses").and_then(|r| r.as_object()) {
                 for (name, resp_val) in responses {
-                    match serde_json::from_value::<crate::core::Response>(resp_val.clone()) {
+                    match crate::core::Response::deserialize(resp_val) {
                         Ok(resp) => ctx.add_response(name.clone(), resp),
                         Err(e) => eprintln!("Warning: Failed to parse response {name}: {e}"),
                     }
@@ -239,7 +236,7 @@ pub fn parse_json(json: &str) -> Result<OpenApi> {
                 .and_then(|rb| rb.as_object())
             {
                 for (name, rb_val) in request_bodies {
-                    match serde_json::from_value::<crate::core::RequestBody>(rb_val.clone()) {
+                    match crate::core::RequestBody::deserialize(rb_val) {
                         Ok(rb) => ctx.add_request_body(name.clone(), rb),
                         Err(e) => eprintln!("Warning: Failed to parse requestBody {name}: {e}"),
                     }
