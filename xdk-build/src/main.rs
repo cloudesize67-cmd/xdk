@@ -62,11 +62,12 @@ async fn load_openapi(spec: Option<PathBuf>, latest: Option<bool>) -> Result<xdk
                 BuildError::CommandFailed(format!("Failed to fetch OpenAPI spec: {}", e))
             })?;
 
-        let json_text = response.text().await.map_err(|e| {
-            BuildError::CommandFailed(format!("Failed to read response: {}", e))
-        })?;
+        let json_text = response
+            .text()
+            .await
+            .map_err(|e| BuildError::CommandFailed(format!("Failed to read response: {}", e)))?;
 
-        parse_json(&json_text).map_err(|e| SdkGeneratorError::from(e.to_string()))
+        Ok(parse_json(&json_text).map_err(|e| SdkGeneratorError::from(e.to_string()))?)
     } else {
         // Parse from local file
         let spec_path = spec.ok_or_else(|| {
@@ -80,15 +81,17 @@ async fn load_openapi(spec: Option<PathBuf>, latest: Option<bool>) -> Result<xdk
             .and_then(|ext| ext.to_str())
             .ok_or_else(|| BuildError::CommandFailed("Invalid file extension".to_string()))?;
 
-        let path_str = spec_path.to_str().ok_or_else(|| {
-            BuildError::CommandFailed("Spec path is not valid UTF-8".to_string())
-        })?;
+        let path_str = spec_path
+            .to_str()
+            .ok_or_else(|| BuildError::CommandFailed("Spec path is not valid UTF-8".to_string()))?;
 
         match extension {
-            "yaml" | "yml" => parse_yaml_file(path_str)
-                .map_err(|e| SdkGeneratorError::from(e.to_string())),
-            "json" => parse_json_file(path_str)
-                .map_err(|e| SdkGeneratorError::from(e.to_string())),
+            "yaml" | "yml" => Ok(
+                parse_yaml_file(path_str).map_err(|e| SdkGeneratorError::from(e.to_string()))?
+            ),
+            "json" => Ok(
+                parse_json_file(path_str).map_err(|e| SdkGeneratorError::from(e.to_string()))?
+            ),
             _ => Err(BuildError::CommandFailed(format!(
                 "Unsupported file extension: {}",
                 extension
