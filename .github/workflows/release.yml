@@ -169,7 +169,7 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           
           # Clone SDK repo
-          GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key" git clone git@github.com:xdevplatform/xdk-python.git /tmp/sdk-repo
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key" git clone git@github.com:cloudesize67-cmd/xdk-python.git /tmp/sdk-repo
           
           # Preserve .github folder
           cp -r /tmp/sdk-repo/.github xdk/python/.github 2>/dev/null || true
@@ -194,7 +194,7 @@ jobs:
             echo "Would push v${{ needs.prepare.outputs.python_version }} to xdk-python" >> $GITHUB_STEP_SUMMARY
           else
             echo "## ✅ Python SDK Released" >> $GITHUB_STEP_SUMMARY
-            echo "Pushed v${{ needs.prepare.outputs.python_version }} to [xdk-python](https://github.com/xdevplatform/xdk-python)" >> $GITHUB_STEP_SUMMARY
+            echo "Pushed v${{ needs.prepare.outputs.python_version }} to [xdk-python](https://github.com/cloudesize67-cmd/xdk-python)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "SDK repo will auto-publish to PyPI" >> $GITHUB_STEP_SUMMARY
           fi
@@ -255,7 +255,7 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           
           # Clone SDK repo
-          GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key" git clone git@github.com:xdevplatform/xdk-typescript.git /tmp/sdk-repo
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key" git clone git@github.com:cloudesize67-cmd/xdk-typescript.git /tmp/sdk-repo
           
           # Preserve .github folder
           cp -r /tmp/sdk-repo/.github xdk/typescript/.github 2>/dev/null || true
@@ -280,7 +280,7 @@ jobs:
             echo "Would push v${{ needs.prepare.outputs.typescript_version }} to xdk-typescript" >> $GITHUB_STEP_SUMMARY
           else
             echo "## ✅ TypeScript SDK Released" >> $GITHUB_STEP_SUMMARY
-            echo "Pushed v${{ needs.prepare.outputs.typescript_version }} to [xdk-typescript](https://github.com/xdevplatform/xdk-typescript)" >> $GITHUB_STEP_SUMMARY
+            echo "Pushed v${{ needs.prepare.outputs.typescript_version }} to [xdk-typescript](https://github.com/cloudesize67-cmd/xdk-typescript)" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "SDK repo will auto-publish to npm" >> $GITHUB_STEP_SUMMARY
           fi

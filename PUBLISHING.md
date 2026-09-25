@@ -2,7 +2,7 @@
 
 ## Release an SDK
 
-1. Go to **[Actions → Release SDK](https://github.com/xdevplatform/xdk/actions/workflows/release.yml)**
+1. Go to **[Actions → Release SDK](https://github.com/cloudesize67-cmd/xdk/actions/workflows/release.yml)**
 2. Click **Run workflow**
 3. Select SDK (`python`, `typescript`, or `all`)
 4. Select bump type (`patch`, `minor`, `major`, `beta`)
@@ -36,5 +36,5 @@ make versions
 
 | SDK | Repo | Package |
 |-----|------|---------|
-| Python | [xdk-python](https://github.com/xdevplatform/xdk-python) | [PyPI](https://pypi.org/project/xdk/) |
-| TypeScript | [xdk-typescript](https://github.com/xdevplatform/xdk-typescript) | [npm](https://www.npmjs.com/package/@xdevplatform/xdk) |
+| Python | [xdk-python](https://github.com/cloudesize67-cmd/xdk-python) | [PyPI](https://pypi.org/project/xdk/) |
+| TypeScript | [xdk-typescript](https://github.com/cloudesize67-cmd/xdk-typescript) | [npm](https://www.npmjs.com/package/@xdevplatform/xdk) |

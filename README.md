@@ -6,8 +6,8 @@ A Rust-based SDK generator that creates language-specific SDKs for the X API fro
 
 | Language | Package | Repo |
 |----------|---------|------|
-| Python | `pip install xdk` | [xdk-python](https://github.com/xdevplatform/xdk-python) |
-| TypeScript | `npm install @xdevplatform/xdk` | [xdk-typescript](https://github.com/xdevplatform/xdk-typescript) |
+| Python | `pip install xdk` | [xdk-python](https://github.com/cloudesize67-cmd/xdk-python) |
+| TypeScript | `npm install @xdevplatform/xdk` | [xdk-typescript](https://github.com/cloudesize67-cmd/xdk-typescript) |
 
 ## Architecture
 
@@ -110,7 +110,7 @@ go = "0.1.0"
 
 ### 5. Create SDK repo
 
-Create `xdevplatform/xdk-go` with CI workflows (see existing SDK repos for examples).
+Create `cloudesize67-cmd/xdk-go` with CI workflows (see existing SDK repos for examples).
 
 ### 6. Update release workflow
 
