@@ -7,9 +7,12 @@ mod utils;
 use crate::error::{BuildError, Result};
 
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
-use xdk_lib::{SdkGeneratorError, log_info};
-use xdk_openapi::{OpenApiContextGuard, parse_json, parse_json_file, parse_yaml_file};
+use std::path::{Path, PathBuf};
+use xdk_lib::{SdkGeneratorError, log_info, log_warn};
+use xdk_openapi::{OpenApi, OpenApiContextGuard, parse_json, parse_json_file, parse_yaml_file};
+
+const LATEST_SPEC_URL: &str = "https://api.x.com/2/openapi.json";
+const LATEST_SPEC_FALLBACK_PATH: &str = "latest-openapi.json";
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -49,6 +52,72 @@ enum Commands {
     },
 }
 
+fn parse_spec_file(spec_path: &Path) -> Result<OpenApi> {
+    let extension = spec_path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .ok_or_else(|| BuildError::CommandFailed("Invalid file extension".to_string()))?;
+
+    let spec_path_str = spec_path.to_string_lossy();
+    match extension {
+        "yaml" | "yml" => parse_yaml_file(spec_path_str.as_ref())
+            .map_err(|e| SdkGeneratorError::from(e.to_string()).into()),
+        "json" => parse_json_file(spec_path_str.as_ref())
+            .map_err(|e| SdkGeneratorError::from(e.to_string()).into()),
+        _ => Err(BuildError::CommandFailed(format!(
+            "Unsupported file extension: {}",
+            extension
+        ))),
+    }
+}
+
+async fn fetch_latest_openapi() -> Result<OpenApi> {
+    let client = reqwest::Client::new();
+    let response =
+        client.get(LATEST_SPEC_URL).send().await.map_err(|e| {
+            BuildError::CommandFailed(format!("Failed to fetch OpenAPI spec: {}", e))
+        })?;
+
+    if !response.status().is_success() {
+        return Err(BuildError::CommandFailed(format!(
+            "Failed to fetch OpenAPI spec: received HTTP {}",
+            response.status()
+        )));
+    }
+
+    let json_text = response
+        .text()
+        .await
+        .map_err(|e| BuildError::CommandFailed(format!("Failed to read response: {}", e)))?;
+
+    parse_json(&json_text).map_err(|e| SdkGeneratorError::from(e.to_string()).into())
+}
+
+async fn load_openapi(spec: Option<PathBuf>, latest: Option<bool>) -> Result<OpenApi> {
+    if latest == Some(true) {
+        match fetch_latest_openapi().await {
+            Ok(openapi) => return Ok(openapi),
+            Err(fetch_error) => {
+                log_warn!(
+                    "Failed to fetch latest OpenAPI spec ({}). Falling back to local {}.",
+                    fetch_error,
+                    LATEST_SPEC_FALLBACK_PATH
+                );
+            }
+        }
+
+        return parse_json_file(LATEST_SPEC_FALLBACK_PATH)
+            .map_err(|e| SdkGeneratorError::from(e.to_string()).into());
+    }
+
+    let spec_path = spec.ok_or_else(|| {
+        BuildError::CommandFailed(
+            "A spec path is required when --latest is not set to true.".to_string(),
+        )
+    })?;
+    parse_spec_file(&spec_path)
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -62,47 +131,7 @@ async fn main() -> Result<()> {
             output,
             latest,
         } => {
-            let openapi = if latest == Some(true) {
-                // Fetch the latest OpenAPI spec from api.x.com
-                let client = reqwest::Client::new();
-                let response = client
-                    .get("https://api.x.com/2/openapi.json")
-                    .send()
-                    .await
-                    .map_err(|e| {
-                        BuildError::CommandFailed(format!("Failed to fetch OpenAPI spec: {}", e))
-                    })?;
-
-                let json_text = response.text().await.map_err(|e| {
-                    BuildError::CommandFailed(format!("Failed to read response: {}", e))
-                })?;
-
-                parse_json(&json_text).map_err(|e| SdkGeneratorError::from(e.to_string()))?
-            } else {
-                // Parse from local file
-                let extension = spec
-                    .as_ref()
-                    .unwrap()
-                    .extension()
-                    .and_then(|ext| ext.to_str())
-                    // Use map_err to convert Option error to BuildError
-                    .ok_or_else(|| {
-                        BuildError::CommandFailed("Invalid file extension".to_string())
-                    })?;
-
-                match extension {
-                    "yaml" | "yml" => parse_yaml_file(spec.as_ref().unwrap().to_str().unwrap())
-                        // Convert xdk_openapi::OpenApiError via xdk_gen::SdkGeneratorError to BuildError
-                        .map_err(|e| SdkGeneratorError::from(e.to_string()))?,
-                    "json" => parse_json_file(spec.as_ref().unwrap().to_str().unwrap())
-                        // Convert xdk_openapi::OpenApiError via xdk_gen::SdkGeneratorError to BuildError
-                        .map_err(|e| SdkGeneratorError::from(e.to_string()))?,
-                    _ => {
-                        let err_msg = format!("Unsupported file extension: {}", extension);
-                        return Err(BuildError::CommandFailed(err_msg));
-                    }
-                }
-            };
+            let openapi = load_openapi(spec, latest).await?;
 
             log_info!("Specification parsed successfully.");
 
@@ -114,47 +143,7 @@ async fn main() -> Result<()> {
             output,
             latest,
         } => {
-            let openapi = if latest == Some(true) {
-                // Fetch the latest OpenAPI spec from api.x.com
-                let client = reqwest::Client::new();
-                let response = client
-                    .get("https://api.x.com/2/openapi.json")
-                    .send()
-                    .await
-                    .map_err(|e| {
-                        BuildError::CommandFailed(format!("Failed to fetch OpenAPI spec: {}", e))
-                    })?;
-
-                let json_text = response.text().await.map_err(|e| {
-                    BuildError::CommandFailed(format!("Failed to read response: {}", e))
-                })?;
-
-                parse_json(&json_text).map_err(|e| SdkGeneratorError::from(e.to_string()))?
-            } else {
-                // Parse from local file
-                let extension = spec
-                    .as_ref()
-                    .unwrap()
-                    .extension()
-                    .and_then(|ext| ext.to_str())
-                    // Use map_err to convert Option error to BuildError
-                    .ok_or_else(|| {
-                        BuildError::CommandFailed("Invalid file extension".to_string())
-                    })?;
-
-                match extension {
-                    "yaml" | "yml" => parse_yaml_file(spec.as_ref().unwrap().to_str().unwrap())
-                        // Convert xdk_openapi::OpenApiError via xdk_gen::SdkGeneratorError to BuildError
-                        .map_err(|e| SdkGeneratorError::from(e.to_string()))?,
-                    "json" => parse_json_file(spec.as_ref().unwrap().to_str().unwrap())
-                        // Convert xdk_openapi::OpenApiError via xdk_gen::SdkGeneratorError to BuildError
-                        .map_err(|e| SdkGeneratorError::from(e.to_string()))?,
-                    _ => {
-                        let err_msg = format!("Unsupported file extension: {}", extension);
-                        return Err(BuildError::CommandFailed(err_msg));
-                    }
-                }
-            };
+            let openapi = load_openapi(spec, latest).await?;
 
             log_info!("Specification parsed successfully.");
 
