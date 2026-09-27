@@ -45,7 +45,7 @@ pub fn generate(openapi: &OpenApi, output_dir: &Path) -> Result<()> {
         venv_path.display().to_string().magenta()
     );
     let mut create_venv_cmd = Command::new("uv");
-    create_venv_cmd.arg("venv").arg(&venv_path);
+    create_venv_cmd.arg("venv").arg("--clear").arg(&venv_path);
     run_command(&mut create_venv_cmd)?;
     log_success!("Virtual environment created successfully.");
 

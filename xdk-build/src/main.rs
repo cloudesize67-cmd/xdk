@@ -12,7 +12,6 @@ use xdk_lib::{SdkGeneratorError, log_info, log_warn};
 use xdk_openapi::{OpenApi, OpenApiContextGuard, parse_json, parse_json_file, parse_yaml_file};
 
 const LATEST_SPEC_URL: &str = "https://api.x.com/2/openapi.json";
-const LATEST_SPEC_FALLBACK_PATH: &str = "latest-openapi.json";
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -95,18 +94,22 @@ async fn fetch_latest_openapi() -> Result<OpenApi> {
 
 async fn load_openapi(spec: Option<PathBuf>, latest: Option<bool>) -> Result<OpenApi> {
     if latest == Some(true) {
+        let fallback_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("latest-openapi.json");
+
         match fetch_latest_openapi().await {
             Ok(openapi) => return Ok(openapi),
             Err(fetch_error) => {
                 log_warn!(
                     "Failed to fetch latest OpenAPI spec ({}). Falling back to local {}.",
                     fetch_error,
-                    LATEST_SPEC_FALLBACK_PATH
+                    fallback_path.display()
                 );
             }
         }
 
-        return parse_json_file(LATEST_SPEC_FALLBACK_PATH)
+        return parse_json_file(fallback_path.to_string_lossy().as_ref())
             .map_err(|e| SdkGeneratorError::from(e.to_string()).into());
     }
 
